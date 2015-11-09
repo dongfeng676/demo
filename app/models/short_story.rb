@@ -1,0 +1,2 @@
+class ShortStory < Novel
+end

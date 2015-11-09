@@ -1,0 +1,2 @@
+class Novel < Article
+end

@@ -1,0 +1,2 @@
+class Poetry < Article
+end

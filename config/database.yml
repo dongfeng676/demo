@@ -1,0 +1,8 @@
+development:
+  adapter: mysql2
+  encoding: utf8
+  database: rails_learn
+  pool: 5
+  username: root
+  password: 
+

@@ -1,0 +1,22 @@
+<%= form_for(@article,html: {class: "form-horizontal", role: "form", multipart: true}) do |f| %>
+  <div class ="form-group">
+    <label class="col-sm-2 control-label">标题:</label>
+    <div class="col-sm-4">
+      <%= f.text_field :name,class:"form-control"%>
+    </div>
+  </div>
+  <div class ="form-group">
+    <label class="col-sm-2 control-label">内容:</label>
+    <div class="col-sm-4">
+      <%= f.text_field :text,class:"form-control"%>
+    </div>
+  </div>
+  <%= f.text_field :lock_version,class:"lock_version"%>
+  <div class="form-group">
+    <div class="col-sm-offset-3 col-sm-4">
+      <button calss="btn btn-success" type="submit">
+        <span class="glyphicon glyphicon-floppy-save">保存</span>
+      </button>
+    </div>
+  </div>
+<% end %>

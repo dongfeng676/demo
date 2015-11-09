@@ -1,0 +1,69 @@
+1.optimistic locking learn
+  rake 任务
+    article:optimistic_lock1
+    article:optimistic_lock2
+    当两个任务同时运行时将会抛出异常信息：　ActiveRecord::StaleObjectError: Attempted to update a stale object: Article
+    文档所示：
+    1.   Optimistic locking allows multiple users to access the same record for edits, and assumes a minimum of conflicts with the data. It does this by checking whether another process has made changes to a record since it was opened, an ActiveRecord::StaleObjectError exception is thrown if that has occurred and the update is ignored.
+    2.   This locking mechanism will function inside a single Ruby process. To make it work across all web requests, the recommended approach is to add lock_version as a hidden field to your form.
+    3.   This behavior can be turned off by setting ActiveRecord::Base.lock_optimistically = false. To override the name of the lock_version column, set the locking_column class attribute:
+    关闭乐观锁方法如下：
+    ActiveRecord::Base.lock_optimistically = false
+    class Article < ActiveRecord::Base
+      self.locking_column = :lock_person
+    end
+
+2. Single table inheritance
+    
+   Active Record allows inheritance by storing the name of the class in a column that is named “type” by default. See ActiveRecord::Inheritance for more details.  
+   references document http://api.rubyonrails.org/classes/ActiveRecord/Inheritance.html
+  used common table and difference by type column
+
+3. (table_name)_count - 缓存关联对象的数量。例如，articles 表中的 comments_count   
+    字段，缓存每篇文章的评论数；
+    at the same time ,in model setting 
+    belongs_to :article, counter_cache: true
+    only counter_cache: true ,this will work
+4. 改变数据库表字段
+　　　add_column(table,column,type,options)
+   rename_column(table,old_column_name,new_column_name)
+   change_column(table,column,type,options)
+   remove_column(table,column)
+   add_index(table,columns,options)
+   remove_index(table,index)
+   options 可以如下：
+   :null=>false :limit=>60,:default=>"false"
+   precision：设置 decimal 类型字段的精度，即数字的位数；
+    scale：设置 decimal 类型字段小数点后的数字位数；
+
+    
+   一些rake 任务
+   rake db:create
+   rake db:create:all
+   rake db:drop
+   rake db:drop:all
+   rake db:migrate
+   rake db:rollback STEP=n回复n个migration 动作
+   rake db:seed 执行db/seeds.rb文件加载种子数据
+   如果需要指定Rails环境，例如production，可以输入 RAILS_ENV=production rake db:migrate
+
+5. has_many 
+    多对多
+　　　　简化嵌套的has_many
+    例如，一个文档分为多个部分，每一部分又有多个段落，如果想使用简单的方式获取文档中的所有段落
+    class Document < ActiveRecord::Base
+      has_many :sections
+      has_many :paragraphs, through: :sections
+    end
+     
+    class Section < ActiveRecord::Base
+      belongs_to :document
+      has_many :paragraphs
+    end
+     
+    class Paragraph < ActiveRecord::Base
+      belongs_to :section
+    end
+
+    加上 through: :sections 后，Rails 就能理解这段代码：@document.paragraphs
+
