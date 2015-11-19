@@ -12,6 +12,7 @@
     class Article < ActiveRecord::Base
       self.locking_column = :lock_person
     end
+    为了使用乐观锁定，数据表中要有一个类型为整数的 lock_version 字段。每次更新记录时，Active Record 都会增加 lock_version 字段的值。如果更新请求中的 lock_version 字段值比数据库中的 lock_version 字段值小，会抛出 ActiveRecord::StaleObjectError 异常，更新失败。
 
 2. Single table inheritance
     
@@ -47,9 +48,16 @@
    rake db:seed 执行db/seeds.rb文件加载种子数据
    如果需要指定Rails环境，例如production，可以输入 RAILS_ENV=production rake db:migrate
 
-5. has_many 
-    多对多
-　　　　简化嵌套的has_many
+5. active record 关联
+    belogs_to   has_one   has_many    has_many :through   has_one :through    has_and_belongs_to_many
+    belongs_to has_many 一对多
+    典型用法：@customer.orders.create(order_date:Time.now)
+    若果has_many :orders,dependent::destroy
+    那么@customer.destroy会级联删除
+    belogs_to has_one 一对一(注意外键放在那个表里边)
+    has_many :through用于建立多对多关联
+    情况1:普通的多对多
+    情况2:如下所示
     例如，一个文档分为多个部分，每一部分又有多个段落，如果想使用简单的方式获取文档中的所有段落
     class Document < ActiveRecord::Base
       has_many :sections
@@ -66,4 +74,52 @@
     end
 
     加上 through: :sections 后，Rails 就能理解这段代码：@document.paragraphs
+
+    has_one :through 关联建立两个模型之间的一对一关系。
+    这种关联表示一个模型通过第三个模型拥有另一个模型的实例。
+    例如，每个供应商只有一个账户，而且每个账户都有一个历史账户。
+
+    has_and_belongs_to_many 关联之间建立两个模型之间的多对多关系，不借由第三个模型。
+    如果不需要使用第三个模型就使用这个，否则使用has_many :through
+    这种关联不需要创建主键
+    create_table :assemblies_parts, id: false do |t|
+      t.integer :assembly_id
+      t.integer :part_id
+    end
+    我们把 id: false 选项传给 create_table 方法，因为这个表不对应模型。只有这样，关联才能正常建立
+
+    多态关联,使用场景，如很多model都拥有image
+    rails g model image target_type:string target_id:integer url:string
+    class Image < ActiveRecord::Base
+      belongs_to :target, :polymorphic => true
+    end
+
+    class Product < Auditable::Base
+      has_many :images, :as => :target
+    end
+
+    关键点在于Image的两个字段一个用于存贮id，一个用于存储type
+    as polymorphic用于表明是多态关联
+6.　查询
+　　　记住find,first,last,take都可以用数组作为参数
+　　　find_each,find_in_batches解决大集合遍历，区别一个传入记录，一个传入代码块(作为数组传入)
+   where,order,select,limit,offset
+   group按照某个字段值分组
+   having 对分组结果进行筛选
+
+   Active Record 提供了 readonly 方法，禁止修改获取的对象。试图修改只读记录的操作不会成功，而且会抛出 ActiveRecord::ReadOnlyRecord 异常
+   client = Client.readonly.first
+   client.visits += 1
+   client.save
+
+   悲观锁
+   悲观锁定使用底层数据库提供的锁定机制。使用 lock 方法构建的关系在所选记录上生成一个“互斥锁”（exclusive lock）。使用 lock 方法构建的关系一般都放入事务中，避免死锁。
+   Item.transaction do
+    i = Item.lock.first
+    i.name = 'Jones'
+    i.save
+  end
+
+  看到查询１２
+
 
